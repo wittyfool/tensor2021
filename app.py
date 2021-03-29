@@ -7,9 +7,12 @@ import matplotlib.pyplot as plt
 
 from keras.datasets import mnist, cifar10
 import numpy as np
+import threading
 
-#(x_train, y_train), (x_test, y_test) = mnist.load_data()
 
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+lock = threading.Lock()
 
 app = Flask(__name__)
 
@@ -17,13 +20,13 @@ app = Flask(__name__)
 @app.route("/plot/<int:idx>")
 
 def plot_graph(idx):
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
-
-    fig = plt.figure(figsize=(3, 3))
 
 
-    #img=x_train[idx]
-    img=x_train[0]
+
+    lock.acquire()
+    fig = plt.figure(figsize=(2, 2))
+
+    img=x_train[idx]
     plt.subplot(1, 1, 1)
     plt.imshow(img)
 
@@ -39,10 +42,11 @@ def plot_graph(idx):
     response = make_response(img_data)
     response.headers['Content-Type'] = 'image/png'
     response.headers['Content-Length'] = len(img_data)
+
+    lock.release()
+
     return response
 
 
 if __name__ == "__main__":
-    #app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
-    app.run(host="0.0.0.0", port=5000, threaded=True)
-
+    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
